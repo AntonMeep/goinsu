@@ -1,0 +1,12 @@
+{
+	"name": "goinsu",
+	"authors": [
+		"Anton Fediushin"
+	],
+	"description": " ",
+	"copyright": "Copyright © 2017, Anton Fediushin",
+	"license": "MIT",
+	"mainSourceFile": "goinsu.d",
+	"targetType": "executable",
+	"importPaths": ["."]
+}
