@@ -1,14 +1,23 @@
+#!/usr/bin/env rdmd
+/+
+dub.json:
+{
+	"name": "goinsu"
+}
++/
+
 module goinsu;
 
 import std.stdio : writefln;
-import std.string : toStringz, fromStringz, indexOf;
+import std.string : toStringz, fromStringz, indexOf, isNumeric;
 import std.format : format;
 import std.process : environment, execvp;
+import std.conv : to;
 
-import core.sys.posix.grp : getgrnam;
-import core.sys.posix.pwd : getpwnam;
+import core.sys.posix.grp : getgrnam, getgrgid;
+import core.sys.posix.pwd : getpwnam, getpwuid;
 import core.sys.posix.unistd : getuid, getgid, setuid, setgid;
-import core.sys.posix.stdlib : gid_t;
+import core.sys.posix.stdlib : gid_t, uid_t;
 import core.stdc.errno : errno;
 import core.stdc.string : strerror;
 
@@ -32,7 +41,9 @@ int main(string[] args) {
 		user = args[1];
 	}
 
-	auto pw = user.toStringz.getpwnam;
+	auto pw = user.isNumeric
+		? user.to!uid_t.getpwuid
+		: user.toStringz.getpwnam;
 	if(pw is null && errno)
 		throw new Exception("Error while searching for user '%s': %s"
 			.format(user, errno.strerror.fromStringz));
@@ -44,7 +55,9 @@ int main(string[] args) {
 	auto gid = pw.pw_gid;
 
 	if(group.length) {
-		auto gr = group.toStringz.getgrnam;
+		auto gr = group.isNumeric
+			? group.to!gid_t.getgrgid
+			: group.toStringz.getgrnam;
 		if(gr is null && errno)
 			throw new Exception("Error while searching for group '%s': %s"
 				.format(group, errno.strerror.fromStringz));
