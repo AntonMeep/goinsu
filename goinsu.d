@@ -16,13 +16,10 @@ extern(C) int setgroups(size_t size, const(gid_t)* list);
 extern(C) int getgrouplist(const(char)* user, gid_t group, gid_t* groups, int* ngroups);
 
 int main(string[] args) {
-	auto usage = (int code = 0) {
+	if(args.length < 3) {
 		"Usage: %s user-spec command [args]".writefln(args[0]);
-		return code;
-	};
-
-	if(args.length < 3)
-		return usage(0);
+		return 0;
+	}
 
 	string user;
 	string group;
