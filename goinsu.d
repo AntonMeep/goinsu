@@ -8,7 +8,7 @@ import std.process : environment, execvp;
 import core.sys.posix.grp : getgrnam;
 import core.sys.posix.pwd : getpwnam;
 import core.sys.posix.unistd : getuid, getgid, setuid, setgid;
-import core.sys.posix.stdlib : gid_t, setenv;
+import core.sys.posix.stdlib : gid_t;
 import core.stdc.errno : errno;
 import core.stdc.string : strerror;
 
