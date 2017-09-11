@@ -14,8 +14,10 @@ extern(C) @nogc:
 
 // TODO: use D_betterC as soon as dmd with https://github.com/dlang/dmd/pull/7132 is released
 version(BetterC) {
+	// `errno` is defined in C header, so small C wrapper is required (See errnofix.c)
 	pragma(mangle, "getErrno") int errno();
 } else {
+	// druntime does the same thing, but in this case program should be linked with druntime
 	import core.stdc.errno : errno;
 }
 
