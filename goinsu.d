@@ -8,13 +8,12 @@ dub.json:
 
 module goinsu;
 
-import core.sys.posix.grp;
-import core.sys.posix.pwd;
-import core.sys.posix.unistd;
-import core.sys.posix.stdlib;
-import core.stdc.errno;
-import core.stdc.string;
-import core.stdc.stdio;
+import core.sys.posix.unistd : getuid, getgid, execvp, setgid, setuid;
+import core.sys.posix.sys.types : uid_t, gid_t;
+import core.sys.posix.stdlib : setenv;
+import core.stdc.stdlib : exit;
+import core.stdc.errno : errno;
+import core.stdc.string : strerror, strchr;
 
 extern(C) @system @nogc:
 
@@ -22,28 +21,29 @@ int setgroups(size_t size, const(gid_t)* list);
 int getgrouplist(const(char)* user, gid_t group, gid_t* groups, int* ngroups);
 
 auto getByNameOrId(alias byid, T, alias byname)(char* v) {
+	import core.stdc.stdlib : strtol;
 	char* end;
 	auto i = v.strtol(&end, 10);
 	return *end == '\0' ? byid(cast(T) i) : byname(v);
 }
 
 void fail(alias err = -1, A...)(in string fmt, A args) {
+	import core.stdc.stdio : stderr, fprintf;
 	stderr.fprintf(fmt.ptr, args);
 	stderr.fprintf("\n");
 	exit(err);
 }
 
 int main(int argc, char** argv) {
-	if(argc < 3) {
-		"Usage: %s user-spec command [args]\n".printf(argv[0]);
-		return 0;
-	}
+	if(argc < 3)
+		"Usage: %s user-spec command [args]".fail!0(argv[0]);
 
 	auto user = argv[1];
 	auto group = user.strchr(':');
 	if(group)
 		*group++ = '\0'; // "user:group\0" ====> "user\0group\0"
 
+	import core.sys.posix.pwd : getpwuid, getpwnam;
 	auto pw = user.getByNameOrId!(getpwuid, uid_t, getpwnam);
 
 	if(pw is null && errno)
@@ -57,6 +57,8 @@ int main(int argc, char** argv) {
 	auto gid = pw.pw_gid;
 
 	if(group && group[0] != '\0') {
+		import core.sys.posix.grp : getgrgid, getgrnam;
+
 		auto gr = group.getByNameOrId!(getgrgid, gid_t, getgrnam);
 		if(gr is null && errno)
 			"Error while getting group '%s': %s"
@@ -77,6 +79,7 @@ int main(int argc, char** argv) {
 	"HOME".setenv(pw.pw_dir, 1);
 
 	{
+		import core.stdc.stdlib : realloc;
 		int ngroups;
 		gid_t* gl;
 		scope(exit) if(gl !is null) gl.realloc(0);
