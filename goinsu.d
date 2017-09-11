@@ -8,94 +8,99 @@ dub.json:
 
 module goinsu;
 
-import std.stdio : writefln;
-import std.string : toStringz, fromStringz, indexOf, isNumeric;
-import std.format : format;
-import std.process : environment, execvp;
-import std.conv : to;
+import core.sys.posix.grp;
+import core.sys.posix.pwd;
+import core.sys.posix.unistd;
+import core.sys.posix.stdlib;
+import core.stdc.errno;
+import core.stdc.string;
+import core.stdc.stdio;
 
-import core.sys.posix.grp : getgrnam, getgrgid;
-import core.sys.posix.pwd : getpwnam, getpwuid;
-import core.sys.posix.unistd : getuid, getgid, setuid, setgid;
-import core.sys.posix.stdlib : gid_t, uid_t;
-import core.stdc.errno : errno;
-import core.stdc.string : strerror;
+extern(C) @system @nogc:
 
-extern(C) int setgroups(size_t size, const(gid_t)* list);
-extern(C) int getgrouplist(const(char)* user, gid_t group, gid_t* groups, int* ngroups);
+int setgroups(size_t size, const(gid_t)* list);
+int getgrouplist(const(char)* user, gid_t group, gid_t* groups, int* ngroups);
 
-int main(string[] args) {
-	if(args.length < 3) {
-		"Usage: %s user-spec command [args]".writefln(args[0]);
+auto getByNameOrId(alias byid, T, alias byname)(char* v) {
+	char* end;
+	auto i = v.strtol(&end, 10);
+	return *end == '\0' ? byid(cast(T) i) : byname(v);
+}
+
+void fail(alias err = -1, A...)(in string fmt, A args) {
+	stderr.fprintf(fmt.ptr, args);
+	stderr.fprintf("\n");
+	exit(err);
+}
+
+int main(int argc, char** argv) {
+	if(argc < 3) {
+		"Usage: %s user-spec command [args]\n".printf(argv[0]);
 		return 0;
 	}
 
-	string user;
-	string group;
+	auto user = argv[1];
+	auto group = user.strchr(':');
+	if(group)
+		*group++ = '\0'; // "user:group\0" ====> "user\0group\0"
 
-	if(args[1].indexOf(':') != -1) {
-		auto i = args[1].indexOf(':');
-		user = args[1][0..i];
-		group = args[1][i+1..$];
-	} else {
-		user = args[1];
-	}
+	auto pw = user.getByNameOrId!(getpwuid, uid_t, getpwnam);
 
-	auto pw = user.isNumeric
-		? user.to!uid_t.getpwuid
-		: user.toStringz.getpwnam;
 	if(pw is null && errno)
-		throw new Exception("Error while searching for user '%s': %s"
-			.format(user, errno.strerror.fromStringz));
+		"Error while getting user '%s': %s"
+			.fail!errno(user, errno.strerror);
 
 	if(pw is null)
-		throw new Exception("User '%s' doesn't exist".format(user));
+		"User '%s' doesn't exist".fail(user);
 
 	immutable uid = pw.pw_uid;
 	auto gid = pw.pw_gid;
 
-	if(group.length) {
-		auto gr = group.isNumeric
-			? group.to!gid_t.getgrgid
-			: group.toStringz.getgrnam;
+	if(group && group[0] != '\0') {
+		auto gr = group.getByNameOrId!(getgrgid, gid_t, getgrnam);
 		if(gr is null && errno)
-			throw new Exception("Error while searching for group '%s': %s"
-				.format(group, errno.strerror.fromStringz));
+			"Error while getting group '%s': %s"
+				.fail!errno(group, user, errno.strerror);
 
 		if(gr is null)
-			throw new Exception("User '%s' isn't in group '%s'".format(user, group));
+			"Group '%s' doesn't exist".fail(group);
 
 		gid = gr.gr_gid;
 	}
 
 	if(uid == getuid && gid == getgid) {
-		args[2].execvp(args[2..$]);
+		argv[2].execvp(&argv[2]);
+
 		return 1;
 	}
 
-	environment["HOME"] = pw.pw_dir.fromStringz;
+	"HOME".setenv(pw.pw_dir, 1);
 
-	int ngroups;
-	if(user.toStringz.getgrouplist(gid, null, &ngroups) == -1) {
-		gid_t[] groups = new gid_t[ngroups];
+	{
+		int ngroups;
+		gid_t* gl;
+		scope(exit) if(gl !is null) gl.realloc(0);
 
-		if(user.toStringz.getgrouplist(gid, groups.ptr, &ngroups) == -1)
-			assert(0);
+		while(true) {
+			if(pw.pw_name.getgrouplist(gid, gl, &ngroups) >= 0) {
+				if(ngroups.setgroups(gl) < 0)
+					"Error while setting groups: %s"
+						.fail!errno(errno.strerror);
+				break;
+			}
 
-		if(setgroups(groups.length, groups.ptr) < 0)
-			throw new Exception("Error while setting groups: %s"
-				.format(errno.strerror.fromStringz));
+			gl = cast(typeof(gl)) gl.realloc(ngroups * gid_t.sizeof);
+			if(gl is null) exit(-2);
+		}
 	}
 
 	if(gid.setgid < 0)
-		throw new Exception("Error while changing group: %s"
-			.format(errno.strerror.fromStringz));
+		"Error while changing group: %s".fail!errno(errno.strerror);
 
-	if(uid.setuid < 0)
-		throw new Exception("Error while changing user: %s"
-			.format(errno.strerror.fromStringz));
+	if(gid.setuid < 0)
+		"Error while changing user: %s".fail!errno(errno.strerror);
 
-	args[2].execvp(args[2..$]);
+	argv[2].execvp(&argv[2]);
 
 	return 1;
 }
