@@ -3,7 +3,7 @@
 	"authors": [
 		"Anton Fediushin"
 	],
-	"description": " ",
+	"description": "Switch user, group and execute a program",
 	"copyright": "Copyright © 2017, Anton Fediushin",
 	"license": "MIT",
 	"mainSourceFile": "goinsu.d",

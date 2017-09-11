@@ -1,0 +1,10 @@
+.dub
+docs.json
+dub.selections.json
+__dummy.html
+*.o
+*.obj
+__test__*__
+.reggae
+Makefile
+goinsu
