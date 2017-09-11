@@ -8,14 +8,16 @@ dub.json:
 
 module goinsu;
 
-import core.sys.posix.unistd : getuid, getgid, execvp, setgid, setuid;
 import core.sys.posix.sys.types : uid_t, gid_t;
-import core.sys.posix.stdlib : setenv;
-import core.stdc.stdlib : exit;
-import core.stdc.errno : errno;
-import core.stdc.string : strerror, strchr;
 
-extern(C) @system @nogc:
+extern(C) @nogc:
+
+// TODO: use D_betterC as soon as dmd with https://github.com/dlang/dmd/pull/7132 is released
+version(BetterC) {
+	pragma(mangle, "getErrno") int errno();
+} else {
+	import core.stdc.errno : errno;
+}
 
 int setgroups(size_t size, const(gid_t)* list);
 int getgrouplist(const(char)* user, gid_t group, gid_t* groups, int* ngroups);
@@ -29,14 +31,18 @@ auto getByNameOrId(alias byid, T, alias byname)(char* v) {
 
 void fail(alias err = -1, A...)(in string fmt, A args) {
 	import core.stdc.stdio : stderr, fprintf;
+	import core.stdc.stdlib : exit;
 	stderr.fprintf(fmt.ptr, args);
 	stderr.fprintf("\n");
 	exit(err);
 }
 
 int main(int argc, char** argv) {
+	import core.sys.posix.unistd : getuid, getgid, execvp, setgid, setuid;
+	import core.stdc.string : strerror, strchr;
+
 	if(argc < 3)
-		"Usage: %s user-spec command [args]".fail!0(argv[0]);
+		"Usage: %s user-spec command [args]".fail!(0)(argv[0]);
 
 	auto user = argv[1];
 	auto group = user.strchr(':');
@@ -76,13 +82,13 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
+	import core.sys.posix.stdlib : setenv;
 	"HOME".setenv(pw.pw_dir, 1);
 
 	{
 		import core.stdc.stdlib : realloc;
 		int ngroups;
 		gid_t* gl;
-		scope(exit) if(gl !is null) gl.realloc(0);
 
 		while(true) {
 			if(pw.pw_name.getgrouplist(gid, gl, &ngroups) >= 0) {
@@ -93,8 +99,11 @@ int main(int argc, char** argv) {
 			}
 
 			gl = cast(typeof(gl)) gl.realloc(ngroups * gid_t.sizeof);
-			if(gl is null) exit(-2);
+			if(gl is null) "Out of memory".fail!(-1);
 		}
+
+		if(gl !is null)
+			gl.realloc(0);
 	}
 
 	if(gid.setgid < 0)
