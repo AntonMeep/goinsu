@@ -8,9 +8,15 @@ d:
 os:
   - linux
 
+env:
+  - ARCH=x86_64
+  - ARCH=x86
+
 before_install:
-  - sudo apt-get -qq update
-  - sudo apt-get install -y gcc-multilib
+  - if [ "$ARCH" == x86 ]; then
+      sudo apt-get -qq update;
+      sudo apt-get install -y gcc-multilib;
+    fi
 
 install:
   - if [ "$DC" == dmd ]; then
@@ -19,15 +25,11 @@ install:
     fi
 
 script:
-  - dub build -b debug --compiler=$DC --arch=x86
-  - dub build -b debug --compiler=$DC --arch=x86_64
+  - dub build -b debug --compiler=$DC --arch=$ARCH
 
 before_deploy:
-  - dub run reggae -- -b make -d ARCH=x86 --no_comp_db && make
-  - tar -zcf "goinsu-$TRAVIS_TAG-$TRAVIS_OS_NAME-$DC-x86.tar.gz" goinsu
-
-  - dub run reggae -- -b make -d ARCH=x86_64 --no_comp_db && make
-  - tar -zcf "goinsu-$TRAVIS_TAG-$TRAVIS_OS_NAME-$DC-x86_64.tar.gz" goinsu
+  - dub run reggae -- -b make -d ARCH=$ARCH --no_comp_db && make
+  - tar -zcf "goinsu-$TRAVIS_TAG-$TRAVIS_OS_NAME-$DC-$ARCH.tar.gz" goinsu
 
 deploy:
   skip_cleanup: true
