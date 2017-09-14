@@ -16,14 +16,14 @@ matrix:
 
 install:
   - if [ "$DC" == dmd ]; then
-      dub fetch reggae
-      dub run reggae -- --version
+      dub fetch reggae;
+      dub run reggae -- --version;
     fi
 
 script:
   - dub build -b debug --compiler=$DC --arch=x86
   - dub build -b debug --compiler=$DC --arch=x86_64
   - if [ "$DC" == dmd ]; then
-      dub run reggae -- -b make -d ARCH=x86_64 --no_comp_db
-      make
+      dub run reggae -- -b make -d ARCH=x86_64 --no_comp_db;
+      make;
     fi
