@@ -7,12 +7,6 @@ d:
 
 os:
   - linux
-  - osx
-
-matrix:
-  exclude:
-    - d: gdc
-      os: osx
 
 before_install:
   - sudo apt-get -qq update
