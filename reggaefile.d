@@ -28,6 +28,6 @@ mixin build!(
 			goinsuObj,
 		]
 	),
-	Target.phony("clean", "rm goinsu").optional,
+	Target.phony("clean", "rm -f goinsu").optional,
 );
 
