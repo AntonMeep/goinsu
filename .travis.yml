@@ -29,10 +29,10 @@ script:
   - dub build -b debug --compiler=$DC --arch=x86_64
 
 before_deploy:
-  - dub run reggae -- -b make -d ARCH=x86 --no-comp_db && make
+  - dub run reggae -- -b make -d ARCH=x86 --no_comp_db && make
   - tar -zcf "goinsu-$TRAVIS_TAG-$TRAVIS_OS_NAME-$DC-x86.tar.gz" goinsu
 
-  - dub run reggae -- -b make -d ARCH=x86_64 --no-comp_db && make
+  - dub run reggae -- -b make -d ARCH=x86_64 --no_comp_db && make
   - tar -zcf "goinsu-$TRAVIS_TAG-$TRAVIS_OS_NAME-$DC-x86_64.tar.gz" goinsu
 
   - export FILE_TO_UPLOAD=$(ls covered-*.tar.gz)
