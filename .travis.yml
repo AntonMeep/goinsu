@@ -1,0 +1,32 @@
+sudo: false
+language: d
+d:
+  - dmd
+  - gdc
+  - ldc
+
+os:
+  - linux
+  - osx
+
+env:
+  - ARCH=x86_64
+  - ARCH=x86
+
+matrix:
+  exclude:
+    - d: gdc
+      os: osx
+
+install:
+  - if [ "$DC" == dmd ]; then
+      dub fetch reggae
+      dub run reggae -- --version
+    fi
+
+script:
+  - dub build -b debug --compiler=$DC --arch=$ARCH
+  - if [ "$DC" == dmd ]; then
+      dub run reggae -- -b make -d ARCH=$ARCH
+      make
+    fi
