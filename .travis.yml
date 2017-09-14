@@ -35,15 +35,13 @@ before_deploy:
   - dub run reggae -- -b make -d ARCH=x86_64 --no_comp_db && make
   - tar -zcf "goinsu-$TRAVIS_TAG-$TRAVIS_OS_NAME-$DC-x86_64.tar.gz" goinsu
 
-  - export FILE_TO_UPLOAD=$(ls covered-*.tar.gz)
-
 deploy:
   skip_cleanup: true
   provider: releases
   api_key:
     secure: TlecfqGUfjeopVe8q7an7uvPt1LkCbladJDrCl5bSRrVcpmyfiOErsWFexun4hGeReJv6Y2dLk5M8Vw7iil92O4OZHV/qCTXpW7o4gu55aoty9popsb8SoeDgVXTQQ2ipnpQO954RIG1tbwbmt/nzF6TS1kgB3tBqKT0agoebDsLqMKlxH99B+kAMVLZR0INbyz4hlAvf8Myb7nrNZc0JqC6aSOBOSHMJjdvoeT43hhi8mTINt+3I1e33jjzNL2vAYcgxjlW6UqAT4IBSg4p2f97Ryyo39eLX9+hloqu92r2GYAS3lmuEXI3J9xp/vBeS6cdpTq8wt660aAYpxYC5xTn3ydDBR2jwfPVuzqSVed0Pr1wGtxa9THoP47Xf8J4u/JZvbeTmY0Ae5vNC0F5sLwNq88wbR771fZajaaydP0gwLR3H1FWq8N1fFPYrrvn88U5yDe3DttrtkRgZz41Gzv7h4nd38NFoUFUyaHqYy8NU4qcmJHInLye5pqeRzENdBbZ5vg8K/QIcsFSvJ0zuNrR2chyUVQXv2vlpDKvjlaNtVMIjwiL5f2h8pF7zD47cBBe+uSlgafynNeBWPA2vaVVGUKKaFsSHOgfX0wrcbbWsVrP4VSsSwLhHw/fzOKJP0MxOMz0IxhrzJRZC1YRiTBjg8FV3+UzsNk53ZyyaKA=
   file_glob: true
-  file: "${FILE_TO_UPLOAD}"
+  file: "*.tar.gz"
   on:
     repo: ohdatboi/goinsu
     tags: true
