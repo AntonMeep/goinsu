@@ -1,9 +1,7 @@
 #!/usr/bin/env rdmd
 /+
 dub.json:
-{
-	"name": "goinsu"
-}
+{ "name": "goinsu" }
 +/
 
 module goinsu;
