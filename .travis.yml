@@ -9,10 +9,6 @@ os:
   - linux
   - osx
 
-env:
-  - ARCH=x86_64
-  - ARCH=x86
-
 matrix:
   exclude:
     - d: gdc
@@ -25,8 +21,9 @@ install:
     fi
 
 script:
-  - dub build -b debug --compiler=$DC --arch=$ARCH
+  - dub build -b debug --compiler=$DC --arch=x86
+  - dub build -b debug --compiler=$DC --arch=x86_64
   - if [ "$DC" == dmd ]; then
-      dub run reggae -- -b make -d ARCH=$ARCH
+      dub run reggae -- -b make -d ARCH=x86_64 --no_comp_db
       make
     fi
