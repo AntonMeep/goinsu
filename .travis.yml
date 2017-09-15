@@ -17,6 +17,19 @@ before_install:
       sudo apt-get -qq update;
       sudo apt-get install -y gcc-multilib;
     fi
+  - if [ "$DC" == dmd ]; then
+      cd /tmp;
+      curl -fsSL http://www.musl-libc.org/releases/musl-1.1.15.tar.gz | tar zx;
+      cd musl-1.1.15;
+      if [ "$ARCH" == x86]; then
+        ./configure --disable-shared CFLAGS=-m32;
+        make ARCH=i386;
+      else
+        ./configure --disable-shared;
+        make;
+      fi;
+      export STATIC_LIBC=$(pwd)/lib/libx.a;
+    fi
 
 install:
   - if [ "$DC" == dmd ]; then
@@ -30,6 +43,9 @@ script:
 before_deploy:
   - dub run reggae -- -b make -d ARCH=$ARCH --no_comp_db && make
   - tar -zcf "goinsu-$TRAVIS_TAG-$TRAVIS_OS_NAME-$DC-$ARCH.tar.gz" goinsu
+  - dub run reggae -- -b make -d ARCH=$ARCH -d BUILD_STATIC=true -d STATIC_LIBC=$STATIC_LIBC --no_comp_db
+    && make
+  - tar -zcf "goinsu-static-$TRAVIS_TAG-$TRAVIS_OS_NAME-$DC-$ARCH.tar.gz" goinsu
 
 deploy:
   skip_cleanup: true
