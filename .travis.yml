@@ -48,7 +48,7 @@ before_deploy:
     popd;
     dub run reggae -- -b make -d ARCH=$ARCH -d BUILD_STATIC=true -d STATIC_LIBC=$STATIC_LIBC --no_comp_db
       && make;
-    tar -zcf "goinsu-static-$TRAVIS_TAG-$TRAVIS_OS_NAME-$ARCH.tar.gz" goinsu
+    tar -zcf "goinsu-$TRAVIS_TAG-$TRAVIS_OS_NAME-$ARCH-static.tar.gz" goinsu
 
 deploy:
   skip_cleanup: true
