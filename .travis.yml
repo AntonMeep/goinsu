@@ -11,6 +11,8 @@ os:
 env:
   - ARCH=x86_64
   - ARCH=x86
+  global:
+    - MAKEFLAGS="-j 2"
 
 before_install:
   - if [ "$ARCH" == x86 ]; then
