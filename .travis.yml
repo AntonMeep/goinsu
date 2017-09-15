@@ -29,7 +29,7 @@ before_install:
         make -s;
       fi;
       popd;
-      export STATIC_LIBC=$(pwd)/lib/libx.a;
+      export STATIC_LIBC=/tmp/musl-1.1.15/lib/libc.a;
     fi
 
 install:
