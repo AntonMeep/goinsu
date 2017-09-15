@@ -9,8 +9,9 @@ os:
   - linux
 
 env:
-  - ARCH=x86_64
-  - ARCH=x86
+  matrix:
+    - ARCH=x86_64
+    - ARCH=x86
   global:
     - MAKEFLAGS="-j 2"
 
