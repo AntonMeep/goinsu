@@ -18,16 +18,17 @@ before_install:
       sudo apt-get install -y gcc-multilib;
     fi
   - if [ "$DC" == dmd ]; then
-      cd /tmp;
+      pushd /tmp;
       curl -fsSL http://www.musl-libc.org/releases/musl-1.1.15.tar.gz | tar zx;
       cd musl-1.1.15;
       if [ "$ARCH" == x86]; then
         ./configure --disable-shared CFLAGS=-m32;
-        make ARCH=i386;
+        make -s ARCH=i386;
       else
         ./configure --disable-shared;
-        make;
+        make -s;
       fi;
+      popd;
       export STATIC_LIBC=$(pwd)/lib/libx.a;
     fi
 
