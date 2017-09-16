@@ -5,13 +5,17 @@ jobs:
     working_directory: "x86_64"
     docker:
       - image: dlanguage/dmd:2.076.0
+        environment:
+          MUSL_VERSION: 1.1.15
+          DOCKER_VERSION: "17.03.0-ce"
+          MAKEFLAGS: "-j 2"
     steps:
       - checkout
       - run: &install_dependencies
           name: Install dependencies
           command: |
             apt-get update -qq
-            apt-get install -y curl make
+            apt-get install -y curl file make
       - run: &fetch_reggae
           name: Fetch reggae
           command: |
@@ -22,45 +26,98 @@ jobs:
           command: |
             dub run reggae -- -b make -d ARCH=x86_64 --no_comp_db
             make
+      - run: &print_info
+          name: Check executable
+          command: |
+            set +o pipefail
+            file goinsu
+            ldd -v goinsu || true
       - setup_remote_docker
       - run: &install_docker
           name: Install Docker client
           command: |
-            VER="17.03.0-ce"
             set +o pipefail
-            curl -fsSL https://get.docker.com/builds/Linux/x86_64/docker-$VER.tgz | tar -zx -C /tmp
+            curl -fsSL https://get.docker.com/builds/Linux/x86_64/docker-$DOCKER_VERSION.tgz | tar -zx -C /tmp
             mv /tmp/docker/* /usr/bin
       - run: &test
           name: Test
           command: |
-            docker build -t test -f .circleci/Dockerfile.x86_64 .
-  "x86":
+            docker build -t test -f .circleci/Dockerfile.test .
+  "x86_64.static":
     <<: *build
-    working_directory: "x86"
+    working_directory: "x86_64.static"
     steps:
       - checkout
       - run:
-          name: Install dependencies
-          command: |
-            apt-get update -qq
-            apt-get install -y curl make gcc-multilib
+          <<: *install_dependencies
       - run:
           <<: *fetch_reggae
       - run:
-          name: Build goinsu x86
+          name: Build x86_64 musl
           command: |
-            dub run reggae -- -b make -d ARCH=x86 --no_comp_db
+            cd /tmp
+            curl -fsSL http://www.musl-libc.org/releases/musl-$MUSL_VERSION.tar.gz | tar zx
+            cd musl-$MUSL_VERSION
+            ./configure --disable-shared
+            make -s
+            echo 'export STATIC_LIBC=/tmp/musl-$MUSL_VERSION/lib/libc.a' >> $BASH_ENV
+      - run:
+          name: Build static goinsu x86_64
+          command: |
+            dub run reggae -- -b make -d ARCH=x86_64 -d BUILD_STATIC=true \
+              -d STATIC_LIBC=$STATIC_LIBC --no_comp_db
             make
+      - run:
+          <<: *print_info
       - setup_remote_docker
       - run:
           <<: *install_docker
       - run: &test
           name: Test
           command: |
-            docker build -t test -f .circleci/Dockerfile.x86 .
+            sed -i "1s/glibc/musl/" .circleci/Dockerfile.test
+            docker build -t test -f .circleci/Dockerfile.test .
+  "x86.static":
+    <<: *build
+    working_directory: "x86.static"
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            apt-get update -qq
+            apt-get install -y curl file make gcc-multilib
+      - run:
+          <<: *fetch_reggae
+      - run:
+          name: Build x86 musl
+          command: |
+            cd /tmp
+            curl -fsSL http://www.musl-libc.org/releases/musl-$MUSL_VERSION.tar.gz | tar zx
+            cd musl-$MUSL_VERSION
+            ./configure --disable-shared CFLAGS=-m32
+            make -s ARCH=i386
+            echo 'export STATIC_LIBC=/tmp/musl-$MUSL_VERSION/lib/libc.a' >> $BASH_ENV
+      - run:
+          name: Build static goinsu x86
+          command: |
+            dub run reggae -- -b make -d ARCH=x86 -d BUILD_STATIC=true \
+              -d STATIC_LIBC=$STATIC_LIBC --no_comp_db
+            make
+      - run:
+          <<: *print_info
+      - setup_remote_docker
+      - run:
+          <<: *install_docker
+      - run: &test
+          name: Test
+          command: |
+            sed -i "1s/glibc/musl/" .circleci/Dockerfile.test
+            docker build -t test -f .circleci/Dockerfile.test .
 workflows:
   version: 2
   build-and-test:
     jobs:
       - "x86_64"
-      - "x86"
+      - "x86.static"
+      - "x86_64.static"
