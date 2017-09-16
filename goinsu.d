@@ -76,14 +76,16 @@ int main(int argc, char** argv) {
 		gid = gr.gr_gid;
 	}
 
+	import core.sys.posix.stdlib : setenv;
+	"HOME".setenv(pw.pw_dir is null || pw.pw_dir[0] == '\0'
+				? "/"
+				: pw.pw_dir, 1);
+
 	if(uid == getuid && gid == getgid) {
 		argv[2].execvp(&argv[2]);
 
 		return 1;
 	}
-
-	import core.sys.posix.stdlib : setenv;
-	"HOME".setenv(pw.pw_dir, 1);
 
 	if(group && group[0] != '\0') {
 		if(1.setgroups(&gid) < 0)
