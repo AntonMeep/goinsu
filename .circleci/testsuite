@@ -1,0 +1,47 @@
+#!/bin/sh
+
+set -e
+
+tester() {
+	real="$(goinsu "$1" id -u):$(goinsu "$1" id -g):$(goinsu "$1" id -G)"
+	if [ "$real" != "$2" ]; then
+		echo -e "ID-FAIL: goinsu '$1':\n\tExpected:\t$2\n\tReal is:\t$real"
+		exit 1
+	else
+		echo ID-OK
+	fi
+
+	real="$(goinsu "$1" id -un):$(goinsu "$1" id -gn):$(goinsu "$1" id -Gn)"
+	if [ "$real" != "$3" ]; then
+		echo -e "NAME-FAIL: goinsu '$1':\n\tExpected:\t$3\n\tReal is:\t$real"
+		exit 1
+	else
+		echo NAME-OK
+	fi
+}
+
+# Format:
+# "argument to pass to goinsu" "expected (ids)" "expected (names)"
+
+tester 0		"0:0:$(id -G root)"	"root:root:$(id -Gn root)"
+tester 0:0		"0:0:0"		"root:root:root"
+tester root		"0:0:$(id -G root)"	"root:root:$(id -Gn root)"
+tester 0:root		"0:0:0"		"root:root:root"
+tester root:0		"0:0:0"		"root:root:root"
+tester 1000		"1000:1000:$(id -G)"	"testuser:testuser:$(id -Gn)"
+tester 0:1000		"0:1000:1000"		"root:testuser:testuser"
+tester 1000:root	"1000:0:0"		"testuser:root:root"
+
+tester 0:		"0:0:$(id -G root)"	"root:root:$(id -Gn root)"
+tester ""		"0:0:$(id -G root)"	"root:root:$(id -Gn root)"
+tester ":0"	"0:0:0"		"root:root:root"
+
+[ "$(goinsu 0		env | grep '^HOME=')" ==	"HOME=/root" ]
+[ "$(goinsu 0:0		env | grep '^HOME=')" ==	"HOME=/root" ]
+[ "$(goinsu root		env | grep '^HOME=')" ==	"HOME=/root" ]
+[ "$(goinsu root:root	env | grep '^HOME=')" ==	"HOME=/root" ]
+[ "$(goinsu 0:root		env | grep '^HOME=')" ==	"HOME=/root" ]
+[ "$(goinsu 0:1000		env | grep '^HOME=')" ==	"HOME=/root" ]
+[ "$(goinsu testuser	env | grep '^HOME=')" ==	"HOME=/" ]
+[ "$(goinsu testuser:0	env | grep '^HOME=')" ==	"HOME=/" ]
+[ "$(goinsu 1000:root	env | grep '^HOME=')" ==	"HOME=/" ]

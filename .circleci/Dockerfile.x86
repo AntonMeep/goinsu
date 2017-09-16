@@ -1,0 +1,25 @@
+FROM debian:latest
+
+RUN dpkg --add-architecture i386 \
+	&& apt-get update -qq \
+	&& apt-get install -y libc6:i386
+
+
+COPY .circleci/testsuite /bin/
+COPY goinsu /bin/
+
+# Add new user
+RUN adduser --no-create-home --disabled-password \
+	--gecos "It's ya' boy, testuser" testuser
+
+# testuser is in every single group
+RUN cat /etc/group | cut -d: -f1 | xargs -I{} -n1 usermod -a -G {} testuser
+
+RUN chmod +s /bin/goinsu # Let goinsu mess with uid/gid
+
+USER testuser
+ENV HOME /opt/is/my/city
+
+RUN id
+
+RUN testsuite

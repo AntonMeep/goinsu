@@ -1,24 +1,18 @@
 version: 2
 
-workflows:
-  version: 2
-  build:
-    jobs:
-      - build
-
 jobs:
-  build:
+  "x86_64": &build
     working_directory: "x86_64"
     docker:
       - image: dlanguage/dmd:2.076.0
     steps:
       - checkout
-      - run:
+      - run: &install_dependencies
           name: Install dependencies
           command: |
             apt-get update -qq
             apt-get install -y curl make
-      - run:
+      - run: &fetch_reggae
           name: Fetch reggae
           command: |
             dub fetch reggae
@@ -29,14 +23,44 @@ jobs:
             dub run reggae -- -b make -d ARCH=x86_64 --no_comp_db
             make
       - setup_remote_docker
-      - run:
+      - run: &install_docker
           name: Install Docker client
           command: |
             VER="17.03.0-ce"
             set +o pipefail
             curl -fsSL https://get.docker.com/builds/Linux/x86_64/docker-$VER.tgz | tar -zx -C /tmp
             mv /tmp/docker/* /usr/bin
-      - run:
+      - run: &test
           name: Test
           command: |
-            docker build -t test-x86_64-dub -f .circleci/Dockerfile .
+            docker build -t test -f .circleci/Dockerfile.x86_64 .
+  "x86":
+    <<: *build
+    working_directory: "x86"
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            apt-get update -qq
+            apt-get install -y curl make gcc-multilib
+      - run:
+          <<: *fetch_reggae
+      - run:
+          name: Build goinsu x86
+          command: |
+            dub run reggae -- -b make -d ARCH=x86 --no_comp_db
+            make
+      - setup_remote_docker
+      - run:
+          <<: *install_docker
+      - run: &test
+          name: Test
+          command: |
+            docker build -t test -f .circleci/Dockerfile.x86 .
+workflows:
+  version: 2
+  build-and-test:
+    jobs:
+      - "x86_64"
+      - "x86"
