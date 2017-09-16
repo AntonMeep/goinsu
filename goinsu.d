@@ -113,7 +113,7 @@ int main(int argc, char** argv) {
 	if(gid.setgid < 0)
 		"Error while changing group: %s".fail!errno(errno.strerror);
 
-	if(gid.setuid < 0)
+	if(uid.setuid < 0)
 		"Error while changing user: %s".fail!errno(errno.strerror);
 
 	argv[2].execvp(&argv[2]);
