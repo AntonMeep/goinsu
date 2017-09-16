@@ -85,7 +85,11 @@ int main(int argc, char** argv) {
 	import core.sys.posix.stdlib : setenv;
 	"HOME".setenv(pw.pw_dir, 1);
 
-	{
+	if(group && group[0] != '\0') {
+		if(1.setgroups(&gid) < 0)
+			"Error while setting group '%s': %s"
+				.fail!errno(group, errno.strerror);
+	} else {
 		import core.stdc.stdlib : realloc;
 		int ngroups;
 		gid_t* gl;
