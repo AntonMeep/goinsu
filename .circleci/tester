@@ -1,0 +1,19 @@
+#!/bin/sh
+
+set -e
+
+real="$(goinsu "$1" id -u):$(goinsu "$1" id -g):$(goinsu "$1" id -G)"
+if [ "$real" != "$2" ]; then
+    echo -e "ID-FAIL: goinsu '$1':\n\tExpected:\t$2\n\tReal is:\t$real"
+    exit 1
+else
+    echo ID-OK
+fi
+
+real="$(goinsu "$1" id -un):$(goinsu "$1" id -gn):$(goinsu "$1" id -Gn)"
+if [ "$real" != "$3" ]; then
+    echo -e "NAME-FAIL: goinsu '$1':\n\tExpected:\t$3\n\tReal is:\t$real"
+    exit 1
+else
+    echo NAME-OK
+fi

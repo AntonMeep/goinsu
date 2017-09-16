@@ -1,0 +1,42 @@
+version: 2
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build
+
+jobs:
+  build:
+    working_directory: "x86_64"
+    docker:
+      - image: dlanguage/dmd:2.076.0
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            apt-get update -qq
+            apt-get install -y curl make
+      - run:
+          name: Fetch reggae
+          command: |
+            dub fetch reggae
+            dub run reggae -- --version
+      - run:
+          name: Build goinsu x86_64
+          command: |
+            dub run reggae -- -b make -d ARCH=x86_64 --no_comp_db
+            make
+      - setup_remote_docker
+      - run:
+          name: Install Docker client
+          command: |
+            VER="17.03.0-ce"
+            set +o pipefail
+            curl -fsSL https://get.docker.com/builds/Linux/x86_64/docker-$VER.tgz | tar -zx -C /tmp
+            mv /tmp/docker/* /usr/bin
+      - run:
+          name: Test
+          command: |
+            docker build -t test-x86_64-dub -f .circleci/Dockerfile .
