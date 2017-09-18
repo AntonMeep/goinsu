@@ -21,7 +21,7 @@ root         1  0.0  0.0   7152   852 pts/0    Rs+  19:08   0:00 ps aux
 ## Why reinvent gosu?
 **goinsu** does the same thing but in 10KB (well, 50KB if compiled as a static executable) instead of 1.8MB.
 
-## Whe reinvent su-exec?
+## Why reinvent su-exec?
 **goinsu** is written in the D programming language, which is a high-level programming language with metaprogramming, CTFE, and other cool things you can't find in C.
 
 ## betterC?
