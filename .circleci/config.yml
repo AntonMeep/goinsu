@@ -1,6 +1,7 @@
 version: 2
 
 jobs:
+  # Simple x86_64 build. It'd be nice to test x86 builds too, but I am too lazy for that
   "x86_64": &build
     working_directory: "x86_64"
     docker:
@@ -43,6 +44,8 @@ jobs:
           name: Test
           command: |
             docker build -t test -f .circleci/Dockerfile.test .
+
+  # Build and test x86_64 executable which is statically linked with libc (musl)
   "x86_64.static":
     <<: *build
     working_directory: "x86_64.static"
@@ -74,9 +77,12 @@ jobs:
           <<: *install_docker
       - run: &test
           name: Test
+          # Test it in an image without glibc
           command: |
             sed -i "1s/glibc/musl/" .circleci/Dockerfile.test
             docker build -t test -f .circleci/Dockerfile.test .
+
+  # Same for x86
   "x86.static":
     <<: *build
     working_directory: "x86.static"
@@ -84,6 +90,7 @@ jobs:
       - checkout
       - run:
           name: Install dependencies
+          # gcc-multilib required
           command: |
             apt-get update -qq
             apt-get install -y curl file make gcc-multilib
@@ -114,6 +121,17 @@ jobs:
           command: |
             sed -i "1s/glibc/musl/" .circleci/Dockerfile.test
             docker build -t test -f .circleci/Dockerfile.test .
+
+  "deploy":
+    working_directory: "x86_64.static"
+    docker:
+      - image: docker:17.06.2-ce-git
+    steps:
+      - run:
+          name: Build image
+          command: |
+            docker build -t ohboi/goinsu:`git tag --point-at=HEAD` .
+
 workflows:
   version: 2
   build-and-test:
@@ -121,3 +139,6 @@ workflows:
       - "x86_64"
       - "x86.static"
       - "x86_64.static"
+      - "deploy":
+          requires:
+	    - "x86_64.static"
