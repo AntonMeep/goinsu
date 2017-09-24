@@ -141,4 +141,4 @@ workflows:
       - "x86_64.static"
       - "deploy":
           requires:
-	    - "x86_64.static"
+            - "x86_64.static"
