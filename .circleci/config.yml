@@ -72,11 +72,6 @@ jobs:
             make
       - run:
           <<: *print_info
-      - persist_to_workspace:
-          root: .
-          paths:
-            - goinsu
-            - Dockerfile
       - setup_remote_docker
       - run:
           <<: *install_docker
@@ -126,24 +121,6 @@ jobs:
             sed -i "1s/glibc/musl/" .circleci/Dockerfile.test
             docker build -t test -f .circleci/Dockerfile.test .
 
-  "deploy":
-    working_directory: deploy
-    docker:
-      - image: docker:17.06.2-ce-git
-    steps:
-      - attach_workspace:
-          at: .
-      - setup_remote_docker
-      - run:
-          name: Build image
-          command: |
-            docker build -t ohboi/goinsu:$CIRCLE_TAG .
-      - run:
-          name: Deploy
-          command: |
-            docker login -u=$DOCKER_NAME -p=$DOCKER_PASS
-            docker push ohboi/goinsu:$CIRCLE_TAG
-
 workflows:
   version: 2
   build-and-test:
@@ -151,11 +128,3 @@ workflows:
       - "x86_64"
       - "x86.static"
       - "x86_64.static"
-      - "deploy":
-          requires:
-            - "x86_64.static"
-          filters:
-            tags:
-              only: /.*/
-            branches:
-              ignore: /.*/
