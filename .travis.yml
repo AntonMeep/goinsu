@@ -22,13 +22,24 @@ before_install:
     fi
 
 install:
-  - if [ "$DC" == dmd ]; then
+  - if [ "$DC" != gdc ]; then
       dub fetch reggae;
       dub run reggae -- --version;
     fi
 
 script:
   - dub build -b debug --compiler=$DC --arch=$ARCH
+  - if [ "$DC" != gdc ]; then
+      if [ "$DC" == ldc2 ]; then
+        dub run reggae -- --dc=ldmd2 -b make -d ARCH=$ARCH --no_comp_db
+          && make;
+      else
+        dub run reggae -- --dc=$DC -b make -d ARCH=$ARCH --no_comp_db
+          && make;
+      fi;
+      file goinsu;
+      ldd goinsu;
+    fi
 
 before_deploy:
   - dub run reggae -- -b make -d ARCH=$ARCH --no_comp_db
