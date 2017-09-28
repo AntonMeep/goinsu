@@ -73,4 +73,4 @@ deploy:
   on:
     repo: ohdatboi/goinsu
     tags: true
-    condition: "$DC = ldc"
+    condition: "$DC = ldc2"
