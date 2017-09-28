@@ -44,6 +44,7 @@ script:
 before_deploy:
   - dub run reggae -- --dc=ldmd2 -b make -d ARCH=$ARCH --no_comp_db
       && make;
+    file goinsu;
     tar -zcf "goinsu-$TRAVIS_TAG-$TRAVIS_OS_NAME-$ARCH-$DC.tar.gz" goinsu;
   - pushd /tmp;
     curl -fsSL http://www.musl-libc.org/releases/musl-1.1.15.tar.gz | tar zx;
@@ -59,6 +60,7 @@ before_deploy:
     popd;
     dub run reggae -- --dc=ldmd2 -b make -d ARCH=$ARCH -d BUILD_STATIC=true -d STATIC_LIBC=$STATIC_LIBC --no_comp_db
       && make;
+    file goinsu;
     tar -zcf "goinsu-$TRAVIS_TAG-$TRAVIS_OS_NAME-$ARCH-$DC-static.tar.gz" goinsu
 
 deploy:
