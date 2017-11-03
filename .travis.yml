@@ -29,14 +29,9 @@ install:
 
 script:
   - dub build -b debug --compiler=$DC --arch=$ARCH
-  - if [ "$DC" != gdc ]; then
-      if [ "$DC" == ldc2 ]; then
-        dub run reggae -- --dc=ldmd2 -b make -d ARCH=$ARCH --no_comp_db
-          && make;
-      else
-        dub run reggae -- --dc=$DC -b make -d ARCH=$ARCH --no_comp_db
-          && make;
-      fi;
+  - if [ "$DC" == dmd ]; then
+      dub run reggae -- --dc=$DC -b make -d ARCH=$ARCH --no_comp_db
+        && make;
       file goinsu;
       ldd goinsu;
     fi
