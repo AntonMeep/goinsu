@@ -8,10 +8,9 @@ module goinsu;
 
 import core.sys.posix.sys.types : uid_t, gid_t;
 
-extern(C) @nogc:
+extern(C) @nogc nothrow:
 
-// TODO: use D_betterC as soon as dmd with https://github.com/dlang/dmd/pull/7132 is released
-version(BetterC) {
+version(D_betterC) {
 	// `errno` is defined in C header, so small C wrapper is required (See errnofix.c)
 	pragma(mangle, "getErrno") int errno();
 } else {

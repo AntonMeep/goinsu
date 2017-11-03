@@ -5,7 +5,7 @@ jobs:
   "x86_64": &build
     working_directory: "x86_64"
     docker:
-      - image: dlanguage/dmd:2.076.0
+      - image: dlanguage/dmd:2.077.0
         environment:
           MUSL_VERSION: 1.1.15
           DOCKER_VERSION: "17.03.0-ce"

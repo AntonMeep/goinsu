@@ -1,3 +1,4 @@
+
 import reggae;
 import std.format : format;
 
@@ -13,8 +14,7 @@ enum errnoFixObj = Target("errnofix.o",
 );
 
 enum goinsuObj = Target("goinsu.o",
-	// TODO: remove -version=BetterC
-	"%s -betterC -version=BetterC -release -O -c %s $in -of$out"
+	"%s -betterC -release -O -c %s $in -of$out"
 		.format(options.dCompiler,
 			ARCH == "x86" ? "-m32" : "-m64"),
 	Target("goinsu.d")
