@@ -45,3 +45,6 @@ strip:
     - du -h goinsu goinsu-static
     - docker run -v$(pwd):/ alpine ash -c "apk add --no-cache binutils && strip -s goinsu && strip -s goinsu-static"
     - du -h goinsu goinsu-static
+  dependencies:
+    - ldc-release
+    - ldc-release-static
