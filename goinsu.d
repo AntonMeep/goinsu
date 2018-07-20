@@ -28,12 +28,18 @@ void fail(alias err = -1, A...)(in string fmt, A args) {
 	exit(err);
 }
 
+static if(__traits(compiles, {import version_; string v = VERSION;})) {
+	import version_;
+} else {
+	enum VERSION="unknown";
+}
+
 int main(int argc, char** argv) {
 	import core.sys.posix.unistd : getuid, getgid, execvp, setgid, setuid;
 	import core.stdc.string : strerror, strchr;
 
 	if(argc < 3)
-		"Usage: %s user-spec command [args]".fail!(0)(argv[0]);
+		("Usage: %s user-spec command [args]\ngoinsu " ~ VERSION).fail!(0)(argv[0]);
 
 	auto user = argv[1];
 	auto group = user.strchr(':');
