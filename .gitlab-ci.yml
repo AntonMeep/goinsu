@@ -3,20 +3,45 @@ image: docker:stable
 services:
 - docker:dind
 
+stages:
+  - build
+  - prepare
+
 dmd-debug:
+  stage: build
   script: docker run -v$(pwd):/source ohboi/minidmd dub build -b debug
 
 dmd-release:
+  stage: build
   script: docker run -v$(pwd):/source ohboi/minidmd dub build -b release
 
 ldc-debug:
+  stage: build
   script: docker run -v$(pwd):/source ohboi/minildc dub build -b debug
 
 ldc-debug-static:
+  stage: build
   script: docker run -v$(pwd):/source ohboi/minildc dub build -b debug -c static
 
 ldc-release:
+  stage: build
   script: docker run -v$(pwd):/source ohboi/minildc dub build -b release
+  artifacts:
+    name: goinsu
+    paths:
+      - goinsu
 
 ldc-release-static:
+  stage: build
   script: docker run -v$(pwd):/source ohboi/minildc dub build -b release -c static
+  artifacts:
+    name: goinsu-static
+    paths:
+      - goinsu
+
+strip:
+  stage: prepare
+  script:
+    - du -h goinsu goinsu-static
+    - docker run -v$(pwd):/ alpine ash -c "apk add --no-cache binutils && strip -s goinsu && strip -s goinsu-static"
+    - du -h goinsu goinsu-static
