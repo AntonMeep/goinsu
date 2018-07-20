@@ -5,50 +5,76 @@ services:
 
 stages:
   - build
-  - prepare
+  - test
 
-dmd-debug:
+dmd-dub: &dub
+  variables:
+    COMPILER: dmd
   stage: build
-  script: docker run -v$(pwd):/source ohboi/minidmd dub build -b debug
+  script: docker run -v$(pwd):/source ohboi/mini$COMPILER bash -c "
+    dub build -b debug             &&
+    dub build -b release           &&
+    dub build -b debug   -c static &&
+    dub build -b release -c static"
 
-dmd-release:
-  stage: build
-  script: docker run -v$(pwd):/source ohboi/minidmd dub build -b release
+ldc-dub:
+  <<: *dub
+  variables:
+    COMPILER: ldc
 
-ldc-debug:
+dmd: &build
+  variables:
+    COMPILER: dmd
+    STATIC: "false"
   stage: build
-  script: docker run -v$(pwd):/source ohboi/minildc dub build -b debug
-
-ldc-debug-static:
-  stage: build
-  script: docker run -v$(pwd):/source ohboi/minildc dub build -b debug -c static
-
-ldc-release:
-  stage: build
-  script: docker run -v$(pwd):/source ohboi/minildc dub build -b release
+  script: docker run -v$(pwd):/source ohboi/mini$COMPILER bash -c "
+    apt update -qq 2>&1 > /dev/null                     &&
+    apt install -qq -y --no-install-recommends make git &&
+    dub fetch reggae                                    &&
+    dub run reggae --
+      --dc=$(if [[ "$COMPILER" = "ldc" ]]; then echo ldmd2; else echo $COMPILER; fi)
+      --backend=make
+      -d STATIC=$STATIC                                 &&
+    make"
   artifacts:
-    name: goinsu
     paths:
       - goinsu
 
-ldc-release-static:
-  stage: build
-  script: docker run -v$(pwd):/source ohboi/minildc dub build -b release -c static
-  artifacts:
-    name: goinsu-static
-    paths:
-      - goinsu
+dmd-static:
+  <<: *build
+  variables:
+    COMPILER: dmd
+    STATIC: "true"
 
-strip: &strip
-  stage: prepare
-  script:
-    - du -h goinsu
-    - docker run -v$(pwd):/ alpine ash -c "apk add --no-cache binutils && strip -s goinsu"
-    - du -h goinsu
-  dependencies:
-    - ldc-release
+ldc:
+  <<: *build
+  variables:
+    COMPILER: ldc
+    STATIC: "false"
 
-strip-static:
-  <<: *strip
+ldc-static:
+  <<: *build
+  variables:
+    COMPILER: ldc
+    STATIC: "true"
+
+dmd-test: &test
+  stage: test
+  script: docker build -f .ci/Dockerfile.test .
   dependencies:
-    - ldc-release
+    - dmd
+
+dmd-static-test:
+  <<: *test
+  dependencies:
+    - dmd-static
+
+ldc-test:
+  <<: *test
+  dependencies:
+    - ldc
+  
+ldc-static-test:
+  <<: *test
+  dependencies:
+    - ldc-static
