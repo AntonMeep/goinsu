@@ -4,11 +4,7 @@ import core.sys.posix.sys.types : uid_t, gid_t;
 
 extern(C) @nogc nothrow:
 
-version(D_betterC) {
-	pragma(mangle, "getErrno") int errno();
-} else {
-	import core.stdc.errno : errno;
-}
+import core.stdc.errno : errno;
 
 int setgroups(size_t size, const(gid_t)* list);
 int getgrouplist(const(char)* user, gid_t group, gid_t* groups, int* ngroups);
@@ -31,7 +27,7 @@ void fail(alias err = -1, A...)(in string fmt, A args) {
 static if(__traits(compiles, {import version_; string v = VERSION;})) {
 	import version_;
 } else {
-	enum VERSION="unknown";
+	enum VERSION="unknown version";
 }
 
 int main(int argc, char** argv) {

@@ -1,19 +1,14 @@
 FROM busybox:glibc
 
+RUN adduser testuser -D -h "" \
+ && cat /etc/group | cut -d: -f1 | xargs -n1 addgroup testuser
+ 
 COPY .ci/testsuite /bin/
 COPY goinsu /bin/
 
-# Add new user
-RUN adduser testuser -D -h "" -g "It's ya' boy, testuser"
-
-# testuser is in every single group
-RUN cat /etc/group | cut -d: -f1 | xargs -n1 addgroup testuser
-
-RUN chmod +s /bin/goinsu # Let goinsu mess with uid/gid
+RUN chmod +s /bin/goinsu
 
 USER testuser
 ENV HOME /opt/is/my/city
 
-RUN id
-
-RUN testsuite
+RUN id && testsuite
