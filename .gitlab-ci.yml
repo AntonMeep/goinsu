@@ -1,0 +1,16 @@
+image: docker:stable
+
+services:
+- docker:dind
+
+dmd-debug:
+  script: docker run -v$(pwd):/source ohboi/minidmd dub build -b debug
+
+dmd-release:
+  script: docker run -v$(pwd):/source ohboi/minidmd dub build -b release
+
+ldc-debug:
+  script: docker run -v$(pwd):/source ohboi/minildc dub build -b debug
+
+ldc-release:
+  script: docker run -v$(pwd):/source ohboi/minildc dub build -b release
