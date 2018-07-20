@@ -7,6 +7,18 @@
 	"copyright": "Copyright © 2017, Anton Fediushin",
 	"license": "MIT",
 	"mainSourceFile": "goinsu.d",
-	"targetType": "executable",
-	"importPaths": ["."]
+	"importPaths": ["."],
+	"configurations": [
+		{
+			"name": "executable",
+			"targetType": "executable",
+			"dflags": ["-betterC"]
+		},
+		{
+			"name": "static",
+			"targetType": "executable",
+			"dflags-ldc": ["-betterC", "-static"],
+			"lflags": ["-static"]
+		}
+	]
 }
