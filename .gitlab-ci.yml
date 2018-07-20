@@ -64,10 +64,8 @@ dmd-test: &test
   dependencies:
     - dmd
 
-dmd-static-test: &static-test
-  stage: test
-  script: sed -i "1s/glibc/musl/" .ci/Dockerfile.test &&
-    docker build -f .ci/Dockerfile.test .
+dmd-static-test:
+  <<: *test
   dependencies:
     - dmd-static
 
@@ -77,6 +75,6 @@ ldc-test:
     - ldc
   
 ldc-static-test:
-  <<: *static-test
+  <<: *test
   dependencies:
     - ldc-static
