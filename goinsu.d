@@ -1,9 +1,3 @@
-#!/usr/bin/env rdmd
-/+
-dub.json:
-{ "name": "goinsu" }
-+/
-
 module goinsu;
 
 import core.sys.posix.sys.types : uid_t, gid_t;
@@ -11,10 +5,8 @@ import core.sys.posix.sys.types : uid_t, gid_t;
 extern(C) @nogc nothrow:
 
 version(D_betterC) {
-	// `errno` is defined in C header, so small C wrapper is required (See errnofix.c)
 	pragma(mangle, "getErrno") int errno();
 } else {
-	// druntime does the same thing, but in this case program should be linked with druntime
 	import core.stdc.errno : errno;
 }
 
