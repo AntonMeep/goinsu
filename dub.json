@@ -21,5 +21,8 @@
 			"dflags-ldc": ["-betterC", "-static"],
 			"lflags": ["-static"]
 		}
+	],
+	"preGenerateCommands": [
+		"bash -c \"echo 'module version_; enum VERSION=\\\"$$(git -C . describe --tags)\\\";' > version_.d\""
 	]
 }
