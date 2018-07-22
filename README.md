@@ -1,4 +1,4 @@
-goinsu [![Page on DUB](https://img.shields.io/dub/v/goinsu.svg?style=flat-square)](http://code.dlang.org/packages/goinsu)[![License](https://img.shields.io/dub/l/goinsu.svg?style=flat-square)](https://github.com/ohdatboi/goinsu/blob/master/LICENSE)[![TravisCI](https://img.shields.io/travis/ohdatboi/goinsu/master.svg?style=flat-square)](https://travis-ci.org/ohdatboi/goinsu)[![CircleCI](https://img.shields.io/circleci/project/github/ohdatboi/goinsu.svg?style=flat-square)](https://circleci.com/gh/ohdatboi/workflows/goinsu)
+goinsu [![Page on DUB](https://img.shields.io/dub/v/goinsu.svg)](http://code.dlang.org/packages/goinsu)[![Licence](https://img.shields.io/dub/l/goinsu.svg)]()[![pipeline status](https://gitlab.com/ohboi/goinsu/badges/master/pipeline.svg)](https://gitlab.com/ohboi/goinsu/pipelines)
 =============
 
 **goinsu** - a simple `su` which doesn't mess with TTY and other stuff. It is as simple as "Hey, run this program as this user".
