@@ -23,6 +23,6 @@
 		}
 	],
 	"preGenerateCommands": [
-		"bash -c \"echo 'module version_; enum VERSION=\\\"$$(git -C . describe --tags)\\\";' > version_.d\""
+		"bash -c \"echo 'module version_; enum VERSION=\\\"$$(git -C . describe --tags) built with $$DC_BASE on $$(date)\\\";' > version_.d\""
 	]
 }

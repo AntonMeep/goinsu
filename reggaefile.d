@@ -12,7 +12,7 @@ mixin build!(
 			Target("version_.o",
 				"%s -betterC -release -O -c $in -of$out".format(options.dCompiler),
 				Target("version_.d",
-					`bash -c "echo 'module version_; enum VERSION=\"$(git -C . describe --tags)\";' > $out"`
+					`bash -c "echo 'module version_; enum VERSION=\"$(git -C . describe --tags) built with %s on $(date)\";' > $out"`.format(options.dCompiler)
 				),
 			),
 		]
