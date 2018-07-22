@@ -12,10 +12,10 @@ dmd-dub: &dub
     COMPILER: dmd
   stage: build
   script: docker run -v$(pwd):/source ohboi/mini$COMPILER bash -c "
-    dub build -b debug             &&
-    dub build -b release           &&
-    dub build -b debug   -c static &&
-    dub build -b release -c static"
+    dub -b debug             &&
+    dub -b release           &&
+    dub -b debug   -c static &&
+    dub -b release -c static"
 
 ldc-dub:
   <<: *dub
@@ -35,7 +35,7 @@ dmd: &build
       --dc=$(if [[ "$COMPILER" = "ldc" ]]; then echo ldmd2; else echo $COMPILER; fi)
       --backend=make
       -d STATIC=$STATIC                                 &&
-    make"
+    make && ./goinsu"
   artifacts:
     paths:
       - goinsu
