@@ -27,7 +27,7 @@ void fail(alias err = -1, A...)(in string fmt, A args) {
 static if(__traits(compiles, {import version_; string v = VERSION;})) {
 	import version_;
 } else {
-	enum VERSION="unknown version";
+	enum VERSION="(unknown version)";
 }
 
 int main(int argc, char** argv) {
